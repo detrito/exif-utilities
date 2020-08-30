@@ -4,8 +4,11 @@
 
 #include <iostream>
 #include <cassert>
-#include <exiv2/image.hpp>
-#include <exiv2/exif.hpp>
+#include <exiv2/exiv2.hpp>
+
+#if EXIV2_MAJOR_VERSION >= 1 || (EXIV2_MAJOR_VERSION == 0 && EXIV2_MINOR_VERSION >= 27)
+#define HAVE_EXIV2_ERROR_CODE
+#endif
 
 // variables
 Exiv2::Image::AutoPtr src_image, dst_image;
@@ -28,7 +31,11 @@ try {
 	// get the metadata	
 	new_exif_data = &src_image->exifData();
 	if (new_exif_data->empty()) {
-		throw Exiv2::Error(1, "no exif data found in the file");
+		#ifdef HAVE_EXIV2_ERROR_CODE
+			throw Exiv2::Error(Exiv2::kerErrorMessage, "no exif data found in the file");
+		#else
+			throw Exiv2::Error(1, "no exif data found in the file");
+		#endif
 	}
 	
 	// write the new metadata to the destination file

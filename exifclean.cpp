@@ -4,9 +4,11 @@
 
 #include <iostream>
 #include <cassert>
-#include <exiv2/image.hpp>
-#include <exiv2/exif.hpp>
-#include <exiv2/error.hpp>
+#include <exiv2/exiv2.hpp>
+
+#if EXIV2_MAJOR_VERSION >= 1 || (EXIV2_MAJOR_VERSION == 0 && EXIV2_MINOR_VERSION >= 27)
+#define HAVE_EXIV2_ERROR_CODE
+#endif
 
 // constants
 const int _elements = 17; 
@@ -62,7 +64,11 @@ try {
 	// memorize the metadata	
 	exif_data = &image->exifData();
 	if (exif_data->empty()) {
-		throw Exiv2::Error(1, "no exif data found in the file");
+		#ifdef HAVE_EXIV2_ERROR_CODE
+			throw Exiv2::Error(Exiv2::kerErrorMessage, "no exif data found in the file");
+		#else
+			throw Exiv2::Error(1, "no exif data found in the file");
+		#endif
 	}
 	for (i=0; i<_elements; i++) {
 		k = exif_data->findKey( Exiv2::ExifKey(_exif_keys[i]) );
